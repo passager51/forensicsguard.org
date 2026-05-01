@@ -1,11 +1,10 @@
-# ForensicsGuard AI 3D Main Website
+ForensicsGuard publication website package
 
-Upload these files to the GitHub Pages repository that serves https://forensicsguard.org.
+Upload these files to GitHub Pages:
+- index.html
+- assets/ folder
 
-Features:
-- High-tech animated 3D-style landing page
-- C2 attempt visualization
-- Local DNS capture explanation
-- IOC matching explanation
-- AI-assisted report analysis section
-- Support email: support@forensicsguard.org
+Notes:
+- The website uses the uploaded product visuals: Mobile Sensor, AI Forensic Engine, Lab Station, Intercept Box, hero box, and ecosystem solution image.
+- The app button currently opens an email request. Replace it with the Google Play link after release approval.
+- Quote requests go to support@forensicsguard.org.
