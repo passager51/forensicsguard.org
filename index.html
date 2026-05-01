@@ -1,857 +1,719 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <title>ForensicsGuard | AI Mobile Forensic Security Platform</title>
-  <meta name="description" content="ForensicsGuard is an AI-assisted Android forensic security platform for local DNS capture, IOC matching, behavior analysis, app risk review, and investigation report analysis." />
-  <meta name="keywords" content="ForensicsGuard, Android forensics, mobile security, spyware detection, IOC, C2 detection, local DNS, forensic report, AI forensic analysis, privacy investigation" />
-  <meta name="author" content="ForensicsGuard" />
-
-  <meta property="og:title" content="ForensicsGuard | AI Mobile Forensic Security Platform" />
-  <meta property="og:description" content="AI-assisted Android forensic security, local DNS visibility, IOC matching, and behavioral analysis." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://forensicsguard.org" />
-
-  <link rel="canonical" href="https://forensicsguard.org" />
-
-  <style>
-    :root {
-      --bg: #02060b;
-      --panel: rgba(7, 18, 32, .74);
-      --panel2: rgba(10, 30, 50, .68);
-      --text: #eef7ff;
-      --muted: #9fb5c9;
-      --cyan: #21f6d0;
-      --blue: #4aa3ff;
-      --purple: #9b72ff;
-      --red: #ff4f6d;
-      --yellow: #ffd166;
-      --border: rgba(255,255,255,.13);
-      --shadow: 0 30px 90px rgba(0,0,0,.48);
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-
-    body {
-      min-height: 100vh;
-      font-family: Inter, Segoe UI, Roboto, Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      overflow-x: hidden;
-      line-height: 1.6;
-    }
-
-    a { color: inherit; text-decoration: none; }
-
-    .bg-3d {
-      position: fixed;
-      inset: 0;
-      z-index: -5;
-      background:
-        radial-gradient(circle at 16% 18%, rgba(33,246,208,.17), transparent 32rem),
-        radial-gradient(circle at 86% 12%, rgba(74,163,255,.15), transparent 34rem),
-        radial-gradient(circle at 52% 88%, rgba(155,114,255,.14), transparent 33rem),
-        linear-gradient(180deg, #02060b, #07111f 46%, #02060b);
-    }
-
-    .grid-floor {
-      position: fixed;
-      inset: -24%;
-      z-index: -4;
-      background-image:
-        linear-gradient(rgba(33,246,208,.08) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(33,246,208,.08) 1px, transparent 1px);
-      background-size: 58px 58px;
-      transform: perspective(760px) rotateX(62deg) translateY(92px);
-      transform-origin: center bottom;
-      animation: gridMove 7s linear infinite;
-      opacity: .42;
-    }
-
-    @keyframes gridMove {
-      from { background-position: 0 0; }
-      to { background-position: 0 58px; }
-    }
-
-    .orb {
-      position: fixed;
-      width: 520px;
-      height: 520px;
-      border-radius: 50%;
-      z-index: -3;
-      filter: blur(14px);
-      opacity: .36;
-      background: radial-gradient(circle, rgba(33,246,208,.26), transparent 66%);
-      animation: floatOrb 15s ease-in-out infinite alternate;
-    }
-
-    .orb.one { top: 7%; left: -180px; }
-    .orb.two {
-      right: -220px;
-      bottom: 10%;
-      background: radial-gradient(circle, rgba(74,163,255,.26), transparent 66%);
-      animation-duration: 19s;
-    }
-
-    @keyframes floatOrb {
-      0% { transform: translate3d(0,0,0) scale(1); }
-      100% { transform: translate3d(90px,54px,0) scale(1.1); }
-    }
-
-    .container { width: min(1180px, 92%); margin: auto; }
-
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      background: rgba(2,6,11,.72);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--border);
-    }
-
-    nav {
-      min-height: 74px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-weight: 900;
-      letter-spacing: .2px;
-    }
-
-    .logo {
-      width: 44px;
-      height: 44px;
-      border-radius: 16px;
-      display: grid;
-      place-items: center;
-      color: #031018;
-      background: linear-gradient(135deg, var(--cyan), var(--blue));
-      box-shadow: 0 0 36px rgba(33,246,208,.26);
-      font-weight: 1000;
-    }
-
-    .nav-links {
-      display: flex;
-      align-items: center;
-      gap: 22px;
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .nav-links a:hover { color: var(--text); }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 46px;
-      padding: 12px 18px;
-      border-radius: 15px;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,.055);
-      color: var(--text);
-      font-weight: 800;
-      transition: .22s ease;
-    }
-
-    .btn.primary {
-      border: none;
-      background: linear-gradient(135deg, var(--cyan), var(--blue));
-      color: #031018;
-      box-shadow: 0 0 32px rgba(33,246,208,.22);
-    }
-
-    .btn:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
-
-    .hero { padding: 88px 0 74px; }
-
-    .hero-grid {
-      display: grid;
-      grid-template-columns: 1.03fr .97fr;
-      gap: 48px;
-      align-items: center;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 13px;
-      border-radius: 999px;
-      border: 1px solid rgba(33,246,208,.24);
-      background: rgba(33,246,208,.08);
-      color: #c2f3eb;
-      font-size: 13px;
-      margin-bottom: 22px;
-    }
-
-    .pulse {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      background: var(--cyan);
-      box-shadow: 0 0 18px var(--cyan);
-      animation: pulse 1.4s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { transform: scale(.78); opacity: .7; }
-      50% { transform: scale(1.25); opacity: 1; }
-    }
-
-    h1 {
-      font-size: clamp(42px, 6vw, 78px);
-      line-height: 1.02;
-      letter-spacing: -2.5px;
-      margin-bottom: 22px;
-    }
-
-    .gradient-text {
-      background: linear-gradient(135deg, #fff, var(--cyan), var(--blue));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-
-    .lead {
-      max-width: 700px;
-      color: var(--muted);
-      font-size: 19px;
-      margin-bottom: 32px;
-    }
-
-    .hero-actions { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 28px; }
-
-    .trust {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .trust span {
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,.04);
-      padding: 8px 11px;
-      border-radius: 999px;
-    }
-
-    .cyber-scene {
-      position: relative;
-      min-height: 590px;
-      display: grid;
-      place-items: center;
-      perspective: 1150px;
-    }
-
-    .scene-core {
-      position: relative;
-      width: min(520px, 92vw);
-      height: min(520px, 92vw);
-      transform-style: preserve-3d;
-      transform: rotateX(58deg) rotateZ(-10deg);
-    }
-
-    .orbit {
-      position: absolute;
-      inset: 36px;
-      border-radius: 50%;
-      border: 1px solid rgba(33,246,208,.30);
-      box-shadow: inset 0 0 40px rgba(33,246,208,.08), 0 0 44px rgba(33,246,208,.08);
-      animation: orbitSpin 17s linear infinite;
-    }
-
-    .orbit.o2 {
-      inset: 86px;
-      border-color: rgba(74,163,255,.32);
-      animation-duration: 12s;
-      animation-direction: reverse;
-    }
-
-    .orbit.o3 {
-      inset: 136px;
-      border-color: rgba(155,114,255,.32);
-      animation-duration: 21s;
-    }
-
-    @keyframes orbitSpin {
-      to { transform: rotateZ(360deg); }
-    }
-
-    .phone {
-      position: absolute;
-      width: 175px;
-      height: 300px;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%) rotateX(-58deg) translateZ(90px);
-      border-radius: 30px;
-      background: linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.04));
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow), 0 0 52px rgba(33,246,208,.14);
-      padding: 13px;
-      animation: phoneFloat 4s ease-in-out infinite alternate;
-    }
-
-    @keyframes phoneFloat {
-      from { transform: translate(-50%, -50%) rotateX(-58deg) translateZ(78px) translateY(0); }
-      to { transform: translate(-50%, -50%) rotateX(-58deg) translateZ(104px) translateY(-12px); }
-    }
-
-    .phone-screen {
-      height: 100%;
-      border-radius: 23px;
-      background: #06101b;
-      border: 1px solid rgba(255,255,255,.10);
-      padding: 14px;
-      overflow: hidden;
-    }
-
-    .screen-title {
-      display: flex;
-      justify-content: space-between;
-      font-size: 10px;
-      color: var(--muted);
-      margin-bottom: 14px;
-    }
-
-    .threat-box {
-      border-radius: 17px;
-      padding: 13px;
-      border: 1px solid rgba(255,79,109,.28);
-      background: rgba(255,79,109,.08);
-      margin-bottom: 11px;
-    }
-
-    .threat-box strong {
-      display: block;
-      color: var(--red);
-      font-size: 13px;
-      margin-bottom: 3px;
-    }
-
-    .threat-box span {
-      color: var(--muted);
-      font-size: 11px;
-    }
-
-    .bar {
-      height: 10px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.08);
-      margin: 9px 0;
-      overflow: hidden;
-    }
-
-    .bar::after {
-      content: "";
-      display: block;
-      height: 100%;
-      width: 64%;
-      background: linear-gradient(90deg, var(--cyan), var(--blue));
-      border-radius: inherit;
-      animation: scanBar 2.8s ease-in-out infinite alternate;
-    }
-
-    @keyframes scanBar {
-      from { width: 24%; }
-      to { width: 92%; }
-    }
-
-    .node {
-      position: absolute;
-      transform: rotateX(-58deg);
-      border: 1px solid var(--border);
-      background: rgba(7,18,32,.82);
-      backdrop-filter: blur(18px);
-      border-radius: 18px;
-      padding: 12px 14px;
-      min-width: 142px;
-      box-shadow: 0 16px 50px rgba(0,0,0,.26);
-      animation: nodeFloat 3.8s ease-in-out infinite alternate;
-    }
-
-    .node strong {
-      display: block;
-      font-size: 12px;
-      margin-bottom: 2px;
-    }
-
-    .node span {
-      color: var(--muted);
-      font-size: 11px;
-    }
-
-    .node.app { left: 12px; top: 82px; }
-    .node.c2 { right: 0; top: 78px; border-color: rgba(255,79,109,.28); }
-    .node.dns { left: 6px; bottom: 100px; border-color: rgba(33,246,208,.28); animation-delay: .5s; }
-    .node.ioc { right: 18px; bottom: 102px; border-color: rgba(74,163,255,.28); animation-delay: 1s; }
-    .node.ai { left: 50%; bottom: -5px; transform: translateX(-50%) rotateX(-58deg); border-color: rgba(155,114,255,.30); animation-delay: .8s; }
-
-    @keyframes nodeFloat {
-      from { margin-top: 0; }
-      to { margin-top: -12px; }
-    }
-
-    .packet {
-      position: absolute;
-      width: 11px;
-      height: 11px;
-      border-radius: 50%;
-      background: var(--red);
-      box-shadow: 0 0 22px var(--red);
-      transform: rotateX(-58deg);
-      animation: packetMove 3.2s linear infinite;
-    }
-
-    .packet.p2 {
-      background: var(--cyan);
-      box-shadow: 0 0 22px var(--cyan);
-      animation-delay: 1.1s;
-    }
-
-    .packet.p3 {
-      background: var(--blue);
-      box-shadow: 0 0 22px var(--blue);
-      animation-delay: 2s;
-    }
-
-    @keyframes packetMove {
-      0% { left: 48%; top: 47%; opacity: 0; }
-      12% { opacity: 1; }
-      42% { left: 82%; top: 23%; opacity: 1; }
-      55% { left: 50%; top: 47%; opacity: 1; }
-      78% { left: 16%; top: 72%; opacity: 1; }
-      100% { left: 48%; top: 47%; opacity: 0; }
-    }
-
-    section { padding: 76px 0; }
-
-    .section-head { max-width: 800px; margin-bottom: 34px; }
-
-    h2 {
-      font-size: clamp(30px, 4vw, 48px);
-      line-height: 1.1;
-      letter-spacing: -1.4px;
-      margin-bottom: 14px;
-    }
-
-    .section-head p {
-      color: var(--muted);
-      font-size: 17px;
-    }
-
-    .grid-3 {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 18px;
-    }
-
-    .card {
-      position: relative;
-      overflow: hidden;
-      min-height: 245px;
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 26px;
-      padding: 25px;
-      box-shadow: 0 20px 55px rgba(0,0,0,.16);
-      backdrop-filter: blur(18px);
-      transition: .25s ease;
-    }
-
-    .card::before {
-      content: "";
-      position: absolute;
-      inset: -1px;
-      background: linear-gradient(135deg, rgba(33,246,208,.18), transparent 45%, rgba(74,163,255,.12));
-      opacity: 0;
-      transition: .25s ease;
-      pointer-events: none;
-    }
-
-    .card:hover {
-      transform: translateY(-5px);
-      border-color: rgba(33,246,208,.34);
-    }
-
-    .card:hover::before { opacity: 1; }
-
-    .icon {
-      width: 46px;
-      height: 46px;
-      display: grid;
-      place-items: center;
-      border-radius: 16px;
-      background: rgba(33,246,208,.11);
-      color: var(--cyan);
-      font-weight: 950;
-      margin-bottom: 16px;
-      border: 1px solid rgba(33,246,208,.18);
-    }
-
-    .card h3 {
-      position: relative;
-      font-size: 19px;
-      margin-bottom: 10px;
-    }
-
-    .card p {
-      position: relative;
-      color: var(--muted);
-      font-size: 15px;
-    }
-
-    .split {
-      display: grid;
-      grid-template-columns: .95fr 1.05fr;
-      gap: 36px;
-      align-items: start;
-    }
-
-    .pipeline {
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,.035);
-      border-radius: 28px;
-      padding: 22px;
-      overflow: hidden;
-    }
-
-    .pipeline-row {
-      display: grid;
-      grid-template-columns: 190px 1fr;
-      gap: 18px;
-      padding: 16px 0;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .pipeline-row:last-child { border-bottom: none; }
-
-    .pipeline-row strong { color: var(--text); }
-    .pipeline-row p { color: var(--muted); font-size: 15px; }
-
-    .notice {
-      border: 1px solid rgba(33,246,208,.26);
-      background: linear-gradient(135deg, rgba(33,246,208,.10), rgba(74,163,255,.07));
-      border-radius: 30px;
-      padding: 34px;
-      backdrop-filter: blur(18px);
-    }
-
-    .notice p {
-      color: var(--muted);
-      margin-top: 10px;
-    }
-
-    .cta {
-      text-align: center;
-      border: 1px solid var(--border);
-      background: linear-gradient(135deg, rgba(33,246,208,.14), rgba(74,163,255,.10), rgba(155,114,255,.08));
-      border-radius: 34px;
-      padding: 52px 26px;
-      box-shadow: var(--shadow);
-    }
-
-    .cta p {
-      max-width: 720px;
-      color: var(--muted);
-      margin: 12px auto 26px;
-    }
-
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 34px 0;
-      color: var(--muted);
-      font-size: 14px;
-      background: rgba(2,6,11,.58);
-    }
-
-    .footer-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 18px;
-      flex-wrap: wrap;
-    }
-
-    .footer-links {
-      display: flex;
-      gap: 18px;
-      flex-wrap: wrap;
-    }
-
-    @media (max-width: 940px) {
-      .hero-grid, .grid-3, .split { grid-template-columns: 1fr; }
-      .nav-links { display: none; }
-      .hero { padding-top: 54px; }
-      .cyber-scene { min-height: 520px; }
-      .scene-core {
-        width: min(390px, 92vw);
-        height: min(390px, 92vw);
-      }
-      .phone {
-        width: 145px;
-        height: 250px;
-      }
-      .node {
-        min-width: 116px;
-        padding: 10px;
-      }
-      .node span { display: none; }
-      .pipeline-row {
-        grid-template-columns: 1fr;
-        gap: 4px;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation: none !important;
-        transition: none !important;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ForensicsGuard | Mobile Forensic Intelligence</title>
+<meta name="description" content="ForensicsGuard is an AI-assisted Android forensic security platform for mobile forensic triage, local DNS visibility, IOC matching, controlled AI review, and investigation-ready reporting.">
+
+<style>
+:root{
+  --bg:#03060b;
+  --text:#eef3f8;
+  --muted:#9aa8b6;
+  --muted2:#778291;
+  --line:rgba(255,255,255,.075);
+  --panel:rgba(8,13,20,.58);
+  --panel2:rgba(255,255,255,.035);
+  --blue:#9db7cc;
+  --green:#a5bea9;
+  --red:#bc8989;
+  --shadow:0 28px 80px rgba(0,0,0,.34);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+html{scroll-behavior:smooth}
+
+body{
+  min-height:100vh;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Arial,sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(circle at 20% 12%, rgba(87,115,140,.12), transparent 34rem),
+    radial-gradient(circle at 82% 4%, rgba(105,122,136,.07), transparent 32rem),
+    linear-gradient(180deg,#070b12,#04070c 52%,#020305);
+  overflow-x:hidden;
+  line-height:1.6;
+}
+
+a{color:inherit;text-decoration:none}
+
+#neuralBackground{
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100%;
+  z-index:-4;
+}
+
+.backdrop-vignette{
+  position:fixed;
+  inset:0;
+  z-index:-3;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at center, transparent 0%, rgba(0,0,0,.12) 54%, rgba(0,0,0,.55) 100%),
+    linear-gradient(180deg, rgba(3,6,11,.08), rgba(3,6,11,.88));
+}
+
+.backdrop-grid{
+  position:fixed;
+  inset:0;
+  z-index:-2;
+  pointer-events:none;
+  opacity:.045;
+  background-image:
+    linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px);
+  background-size:58px 58px;
+  mask-image:radial-gradient(circle at center, black, transparent 76%);
+}
+
+.container{
+  width:min(1180px,92%);
+  margin:auto;
+}
+
+header{
+  position:sticky;
+  top:0;
+  z-index:30;
+  background:rgba(3,6,11,.68);
+  backdrop-filter:blur(22px);
+  border-bottom:1px solid var(--line);
+}
+
+nav{
+  min-height:76px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  font-weight:700;
+  letter-spacing:.1px;
+}
+
+.logo{
+  width:42px;
+  height:42px;
+  border-radius:13px;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(255,255,255,.12);
+  background:linear-gradient(145deg,rgba(255,255,255,.10),rgba(255,255,255,.03));
+  color:#dce8f3;
+  box-shadow:0 10px 32px rgba(0,0,0,.25);
+}
+
+.nav-links{
+  display:flex;
+  gap:22px;
+  align-items:center;
+  color:var(--muted);
+  font-size:14px;
+}
+
+.nav-links a:hover{color:var(--text)}
+
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:44px;
+  padding:11px 18px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.045);
+  color:var(--text);
+  font-weight:650;
+}
+
+.btn.primary{
+  border:0;
+  background:#edf3f8;
+  color:#07101a;
+}
+
+.hero{
+  min-height:calc(100vh - 76px);
+  display:flex;
+  align-items:center;
+  padding:92px 0 84px;
+}
+
+.hero-inner{
+  max-width:980px;
+}
+
+.kicker{
+  display:inline-flex;
+  align-items:center;
+  gap:9px;
+  color:#c8d6e2;
+  font-size:13px;
+  padding:7px 12px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.032);
+  border-radius:999px;
+  margin-bottom:24px;
+  backdrop-filter:blur(14px);
+}
+
+.dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 16px rgba(165,190,169,.50);
+}
+
+h1{
+  font-size:clamp(48px,7vw,92px);
+  line-height:1.01;
+  letter-spacing:-3px;
+  font-weight:780;
+  margin-bottom:25px;
+  max-width:1100px;
+}
+
+.title-soft{
+  color:#9db4c8;
+}
+
+.lead{
+  max-width:820px;
+  color:var(--muted);
+  font-size:19px;
+  margin-bottom:30px;
+}
+
+.hero-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  margin-bottom:25px;
+}
+
+.trust{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  color:var(--muted2);
+  font-size:13px;
+}
+
+.trust span{
+  padding:7px 11px;
+  border-radius:999px;
+  background:rgba(255,255,255,.032);
+  border:1px solid rgba(255,255,255,.06);
+  backdrop-filter:blur(10px);
+}
+
+.full-intel-strip{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:14px;
+  margin-top:52px;
+  max-width:980px;
+}
+
+.intel-unit{
+  min-height:112px;
+  padding:18px;
+  border-radius:22px;
+  border:1px solid rgba(255,255,255,.075);
+  background:rgba(5,9,15,.42);
+  backdrop-filter:blur(18px);
+  box-shadow:0 18px 56px rgba(0,0,0,.18);
+}
+
+.intel-unit small{
+  display:block;
+  color:var(--muted2);
+  font-size:12px;
+}
+
+.intel-unit strong{
+  display:block;
+  margin-top:8px;
+  font-size:18px;
+  color:#eef4fa;
+}
+
+.intel-unit span{
+  display:block;
+  margin-top:4px;
+  color:var(--muted);
+  font-size:13px;
+}
+
+section{
+  padding:82px 0;
+}
+
+.section-head{
+  max-width:840px;
+  margin-bottom:34px;
+}
+
+h2{
+  font-size:clamp(31px,4vw,50px);
+  line-height:1.1;
+  letter-spacing:-1.2px;
+  font-weight:760;
+  margin-bottom:14px;
+}
+
+.section-head p{
+  color:var(--muted);
+  font-size:17px;
+}
+
+.split{
+  display:grid;
+  grid-template-columns:.95fr 1.05fr;
+  gap:34px;
+  align-items:start;
+}
+
+.panel{
+  border:1px solid var(--line);
+  border-radius:28px;
+  background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.026));
+  backdrop-filter:blur(20px);
+  box-shadow:var(--shadow);
+}
+
+.pipeline{
+  padding:22px;
+}
+
+.pipeline-row{
+  display:grid;
+  grid-template-columns:190px 1fr;
+  gap:18px;
+  padding:17px 0;
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+
+.pipeline-row:last-child{border-bottom:0}
+.pipeline-row strong{color:#edf4fa}
+.pipeline-row p{color:var(--muted);font-size:15px}
+
+.grid-3{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:16px;
+}
+
+.card{
+  min-height:230px;
+  padding:23px;
+  border-radius:26px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.035);
+  backdrop-filter:blur(16px);
+  box-shadow:0 18px 56px rgba(0,0,0,.18);
+}
+
+.icon{
+  width:42px;
+  height:42px;
+  display:grid;
+  place-items:center;
+  border-radius:14px;
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.09);
+  color:#d5e0ea;
+  font-weight:720;
+  margin-bottom:15px;
+}
+
+.card h3{font-size:18px;margin-bottom:9px}
+.card p{color:var(--muted);font-size:15px}
+
+.notice,.cta{
+  padding:34px;
+}
+
+.notice p,.cta p{
+  color:var(--muted);
+  margin-top:11px;
+  font-size:16px;
+}
+
+.notice a{
+  color:#dce8f3;
+  text-decoration:underline;
+  text-underline-offset:4px;
+}
+
+.cta{
+  text-align:center;
+}
+
+.cta p{
+  max-width:760px;
+  margin:12px auto 24px;
+}
+
+footer{
+  border-top:1px solid var(--line);
+  padding:32px 0;
+  color:var(--muted2);
+  font-size:14px;
+  background:rgba(5,7,11,.58);
+  backdrop-filter:blur(20px);
+}
+
+.footer-row{
+  display:flex;
+  justify-content:space-between;
+  gap:18px;
+  flex-wrap:wrap;
+}
+
+.footer-links{
+  display:flex;
+  gap:18px;
+  flex-wrap:wrap;
+}
+
+@media(max-width:980px){
+  .split,.grid-3,.full-intel-strip{grid-template-columns:1fr}
+  .nav-links{display:none}
+  h1{letter-spacing:-2px}
+  .hero{min-height:auto}
+}
+
+@media(max-width:560px){
+  .hero{padding-top:62px}
+  h1{letter-spacing:-1.4px}
+  .lead{font-size:17px}
+}
+</style>
 </head>
 
 <body>
-  <div class="bg-3d"></div>
-  <div class="grid-floor"></div>
-  <div class="orb one"></div>
-  <div class="orb two"></div>
+<canvas id="neuralBackground"></canvas>
+<div class="backdrop-vignette"></div>
+<div class="backdrop-grid"></div>
 
-  <header>
-    <div class="container">
-      <nav>
-        <a class="brand" href="#top" aria-label="ForensicsGuard home">
-          <span class="logo">FG</span>
-          <span>ForensicsGuard</span>
-        </a>
-
-        <div class="nav-links">
-          <a href="#engine">Engine</a>
-          <a href="#capabilities">Capabilities</a>
-          <a href="#ai">AI Analysis</a>
-          <a href="https://privacy.forensicsguard.org">Privacy</a>
-          <a class="btn primary" href="mailto:support@forensicsguard.org">Support</a>
-        </div>
-      </nav>
-    </div>
-  </header>
-
-  <main id="top">
-    <section class="hero">
-      <div class="container hero-grid">
-        <div>
-          <div class="badge"><span class="pulse"></span> AI-assisted Android forensic security platform</div>
-          <h1><span class="gradient-text">Catch suspicious mobile behavior</span> before it hides in noise.</h1>
-          <p class="lead">
-            ForensicsGuard analyzes Android apps, permissions, communication behavior, battery patterns, runtime signals, and local DNS observations across more than 150 parameters. Suspicious indicators are checked against known IOC sources and ForensicsGuard Lab intelligence.
-          </p>
-
-          <div class="hero-actions">
-            <a class="btn primary" href="#engine">See the engine</a>
-            <a class="btn" href="https://privacy.forensicsguard.org">Privacy policy</a>
-          </div>
-
-          <div class="trust">
-            <span>Local DNS capture</span>
-            <span>IOC matching</span>
-            <span>AI report analysis</span>
-            <span>User-requested checks</span>
-          </div>
-        </div>
-
-        <div class="cyber-scene" aria-label="Animated C2 and IOC detection flow">
-          <div class="scene-core">
-            <div class="orbit"></div>
-            <div class="orbit o2"></div>
-            <div class="orbit o3"></div>
-
-            <div class="node app">
-              <strong>Suspicious App</strong>
-              <span>Behavior + permissions</span>
-            </div>
-
-            <div class="node c2">
-              <strong>C2 Attempt</strong>
-              <span>Remote domain observed</span>
-            </div>
-
-            <div class="node dns">
-              <strong>Local DNS</strong>
-              <span>Query captured locally</span>
-            </div>
-
-            <div class="node ioc">
-              <strong>IOC Match</strong>
-              <span>Known threat indicators</span>
-            </div>
-
-            <div class="node ai">
-              <strong>AI Review</strong>
-              <span>Report correlation</span>
-            </div>
-
-            <span class="packet"></span>
-            <span class="packet p2"></span>
-            <span class="packet p3"></span>
-
-            <div class="phone">
-              <div class="phone-screen">
-                <div class="screen-title">
-                  <span>FG Engine</span>
-                  <span>Live</span>
-                </div>
-
-                <div class="threat-box">
-                  <strong>C2 SIGNAL</strong>
-                  <span>DNS query captured</span>
-                </div>
-
-                <div class="bar"></div>
-                <div class="bar"></div>
-                <div class="bar"></div>
-                <div class="bar"></div>
-                <div class="bar"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="engine">
-      <div class="container split">
-        <div class="section-head">
-          <h2>From app behavior to forensic insight.</h2>
-          <p>
-            The platform connects multiple weak signals. A single permission may not prove risk. A single DNS query may not prove compromise. ForensicsGuard correlates context, behavior, communication, and known indicators to support better investigation decisions.
-          </p>
-        </div>
-
-        <div class="pipeline">
-          <div class="pipeline-row">
-            <strong>1. App inventory</strong>
-            <p>Reviews installed apps, source, package identity, permissions, launcher visibility, and sensitive capability exposure.</p>
-          </div>
-
-          <div class="pipeline-row">
-            <strong>2. Behavior profile</strong>
-            <p>Analyzes runtime behavior, battery consumption, timing patterns, background activity, and communication context.</p>
-          </div>
-
-          <div class="pipeline-row">
-            <strong>3. Local DNS capture</strong>
-            <p>Detects suspicious domain resolution attempts locally, including possible command-and-control communication patterns.</p>
-          </div>
-
-          <div class="pipeline-row">
-            <strong>4. IOC matching</strong>
-            <p>Checks indicators against selected public research sources, including Amnesty and Citizen Lab, plus ForensicsGuard Lab intelligence.</p>
-          </div>
-
-          <div class="pipeline-row">
-            <strong>5. AI report analysis</strong>
-            <p>Analyzes the generated report on request to correlate findings, rank risk, and produce investigation-ready conclusions.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="capabilities">
-      <div class="container">
-        <div class="section-head">
-          <h2>Capabilities designed for mobile forensic triage</h2>
-          <p>Built to support structured analysis, not fear-based alerts.</p>
-        </div>
-
-        <div class="grid-3">
-          <article class="card">
-            <div class="icon">01</div>
-            <h3>150+ analysis parameters</h3>
-            <p>Correlates permissions, battery use, timing, background behavior, communication, source, package profile, and other mobile signals.</p>
-          </article>
-
-          <article class="card">
-            <div class="icon">02</div>
-            <h3>Local DNS investigation</h3>
-            <p>Uses local visibility to identify suspicious domain lookups and possible C2 communication attempts without requiring root access.</p>
-          </article>
-
-          <article class="card">
-            <div class="icon">03</div>
-            <h3>IOC intelligence checks</h3>
-            <p>Compares observed indicators against known IOC sets from public research and ForensicsGuard Lab internal analysis.</p>
-          </article>
-
-          <article class="card">
-            <div class="icon">04</div>
-            <h3>Permission and behavior scoring</h3>
-            <p>Ranks app risk using explainable logic that combines capability, context, source, and suspicious behavior.</p>
-          </article>
-
-          <article class="card">
-            <div class="icon">05</div>
-            <h3>AI-assisted report review</h3>
-            <p>On request, the AI analyzes the generated report to identify patterns, summarize evidence, and support investigation decisions.</p>
-          </article>
-
-          <article class="card">
-            <div class="icon">06</div>
-            <h3>Investigation export</h3>
-            <p>Produces structured reports for review, documentation, escalation, and deeper forensic follow-up.</p>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section id="ai">
-      <div class="container">
-        <div class="notice">
-          <h2>AI analysis is controlled and request-based.</h2>
-          <p>
-            The app performs internal analysis against known indicators and ForensicsGuard Lab intelligence. AI review of the generated report is available only when requested by the user or investigator.
-          </p>
-          <p>
-            The AI engine is designed to analyze relationships between battery behavior, timing, communication patterns, permissions, app source, IOC matches, and more than 150 forensic parameters.
-          </p>
-          <p>
-            For support, contact <a href="mailto:support@forensicsguard.org">support@forensicsguard.org</a>.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <section id="contact">
-      <div class="container">
-        <div class="cta">
-          <h2>Forensic mobile security with AI-assisted investigation.</h2>
-          <p>
-            ForensicsGuard is built for privacy protection, defensive security, and forensic triage. It helps transform mobile signals into structured, explainable investigation findings.
-          </p>
-          <a class="btn primary" href="mailto:support@forensicsguard.org">support@forensicsguard.org</a>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer>
-    <div class="container footer-row">
-      <span>© 2026 ForensicsGuard. All rights reserved.</span>
-      <div class="footer-links">
+<header>
+  <div class="container">
+    <nav>
+      <a class="brand" href="#top">
+        <span class="logo">FG</span>
+        <span>ForensicsGuard</span>
+      </a>
+      <div class="nav-links">
+        <a href="#engine">Engine</a>
+        <a href="#capabilities">Capabilities</a>
+        <a href="#ai">AI Analysis</a>
         <a href="https://privacy.forensicsguard.org">Privacy Policy</a>
-        <a href="mailto:support@forensicsguard.org">Support</a>
+        <a class="btn primary" href="mailto:support@forensicsguard.org">Support</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="container">
+      <div class="hero-inner">
+        <div class="kicker"><span class="dot"></span> AI-assisted Android forensic security platform</div>
+        <h1>
+          <span>Mobile forensic intelligence.</span><br>
+          <span class="title-soft">Clear evidence. Controlled AI.</span>
+        </h1>
+        <p class="lead">
+          ForensicsGuard analyzes Android apps, permissions, communication behavior, battery patterns, runtime signals, and local DNS observations across more than 150 parameters. Suspicious indicators are checked against known IOC sources and ForensicsGuard Lab intelligence.
+        </p>
+
+        <div class="hero-actions">
+          <a class="btn primary" href="#engine">See the engine</a>
+          <a class="btn" href="https://privacy.forensicsguard.org">Privacy policy</a>
+        </div>
+
+        <div class="trust">
+          <span>Local DNS capture</span>
+          <span>IOC matching</span>
+          <span>AI report analysis</span>
+          <span>User-requested checks</span>
+        </div>
+
+        <div class="full-intel-strip">
+          <div class="intel-unit">
+            <small>Attribution</small>
+            <strong>App-level evidence</strong>
+            <span>UID/package mapping where Android allows it.</span>
+          </div>
+          <div class="intel-unit">
+            <small>Network</small>
+            <strong>DNS visibility</strong>
+            <span>Domain observations captured locally.</span>
+          </div>
+          <div class="intel-unit">
+            <small>Threat intelligence</small>
+            <strong>IOC correlation</strong>
+            <span>Public sources and lab intelligence.</span>
+          </div>
+          <div class="intel-unit">
+            <small>Assessment</small>
+            <strong>Controlled AI review</strong>
+            <span>Report analysis only when requested.</span>
+          </div>
+        </div>
       </div>
     </div>
-  </footer>
+  </section>
+
+  <section id="engine">
+    <div class="container split">
+      <div class="section-head">
+        <h2>From app behavior to forensic insight.</h2>
+        <p>
+          The platform connects multiple weak signals. A single permission may not prove risk. A single DNS query may not prove compromise. ForensicsGuard correlates context, behavior, communication, and known indicators to support better investigation decisions.
+        </p>
+      </div>
+
+      <div class="panel pipeline">
+        <div class="pipeline-row"><strong>1. App inventory</strong><p>Reviews installed apps, source, package identity, permissions, launcher visibility, and sensitive capability exposure.</p></div>
+        <div class="pipeline-row"><strong>2. Behavior profile</strong><p>Analyzes runtime behavior, battery consumption, timing patterns, background activity, and communication context.</p></div>
+        <div class="pipeline-row"><strong>3. Local DNS capture</strong><p>Detects suspicious domain resolution attempts locally, including possible command-and-control communication patterns.</p></div>
+        <div class="pipeline-row"><strong>4. IOC matching</strong><p>Checks indicators against selected public research sources, including Amnesty and Citizen Lab, plus ForensicsGuard Lab intelligence.</p></div>
+        <div class="pipeline-row"><strong>5. AI report analysis</strong><p>Analyzes the generated report on request to correlate findings, rank risk, and produce investigation-ready conclusions.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="capabilities">
+    <div class="container">
+      <div class="section-head">
+        <h2>Capabilities designed for mobile forensic triage</h2>
+        <p>Built to support structured analysis, not fear-based alerts.</p>
+      </div>
+
+      <div class="grid-3">
+        <article class="card"><div class="icon">01</div><h3>150+ analysis parameters</h3><p>Correlates permissions, battery use, timing, background behavior, communication, source, package profile, and other mobile signals.</p></article>
+        <article class="card"><div class="icon">02</div><h3>Local DNS investigation</h3><p>Uses local visibility to identify suspicious domain lookups and possible C2 communication attempts without requiring root access.</p></article>
+        <article class="card"><div class="icon">03</div><h3>IOC intelligence checks</h3><p>Compares observed indicators against known IOC sets from public research and ForensicsGuard Lab internal analysis.</p></article>
+        <article class="card"><div class="icon">04</div><h3>Permission and behavior scoring</h3><p>Ranks app risk using explainable logic that combines capability, context, source, and suspicious behavior.</p></article>
+        <article class="card"><div class="icon">05</div><h3>AI-assisted report review</h3><p>On request, the AI analyzes the generated report to identify patterns, summarize evidence, and support investigation decisions.</p></article>
+        <article class="card"><div class="icon">06</div><h3>Investigation export</h3><p>Produces structured reports for review, documentation, escalation, and deeper forensic follow-up.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section id="ai">
+    <div class="container">
+      <div class="panel notice">
+        <h2>AI analysis is controlled and request-based.</h2>
+        <p>The app performs internal analysis against known indicators and ForensicsGuard Lab intelligence. AI review of the generated report is available only when requested by the user or investigator.</p>
+        <p>The AI engine is designed to analyze relationships between battery behavior, timing, communication patterns, permissions, app source, IOC matches, and more than 150 forensic parameters.</p>
+        <p>For support, contact <a href="mailto:support@forensicsguard.org">support@forensicsguard.org</a>.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <div class="container">
+      <div class="panel cta">
+        <h2>Forensic mobile security with AI-assisted investigation.</h2>
+        <p>ForensicsGuard is built for privacy protection, defensive security, and forensic triage. It helps transform mobile signals into structured, explainable investigation findings.</p>
+        <a class="btn primary" href="mailto:support@forensicsguard.org">support@forensicsguard.org</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container footer-row">
+    <span>© 2026 ForensicsGuard. All rights reserved.</span>
+    <div class="footer-links">
+      <a href="https://privacy.forensicsguard.org">Privacy Policy</a>
+      <a href="mailto:support@forensicsguard.org">Support</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+const canvas = document.getElementById("neuralBackground");
+const ctx = canvas.getContext("2d");
+
+let w, h, dpr;
+let mouse = { x: -9999, y: -9999 };
+
+function resize(){
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.floor(window.innerWidth * dpr);
+  canvas.height = Math.floor(window.innerHeight * dpr);
+  canvas.style.width = window.innerWidth + "px";
+  canvas.style.height = window.innerHeight + "px";
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  w = window.innerWidth;
+  h = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+window.addEventListener("mousemove", e => {
+  mouse.x = e.clientX;
+  mouse.y = e.clientY;
+});
+window.addEventListener("mouseleave", () => {
+  mouse.x = -9999;
+  mouse.y = -9999;
+});
+
+const layers = [];
+const layerSettings = [
+  { count: 96, speed: .030, size: 2.2, alpha: .70, dist: 165 },
+  { count: 72, speed: .022, size: 1.7, alpha: .42, dist: 130 },
+  { count: 48, speed: .014, size: 2.7, alpha: .22, dist: 115 }
+];
+
+function createLayers(){
+  layers.length = 0;
+  layerSettings.forEach((cfg) => {
+    const arr = [];
+    for(let i=0;i<cfg.count;i++){
+      arr.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        vx: (Math.random() - .5) * cfg.speed,
+        vy: (Math.random() - .5) * cfg.speed,
+        r: cfg.size + Math.random() * 1.3,
+        alpha: cfg.alpha,
+        dist: cfg.dist,
+        phase: Math.random() * Math.PI * 2
+      });
+    }
+    layers.push(arr);
+  });
+}
+createLayers();
+
+window.addEventListener("resize", () => {
+  setTimeout(createLayers, 120);
+});
+
+const packets = Array.from({length: 16}, () => ({
+  layer: 0,
+  i: 0,
+  j: 1,
+  t: Math.random(),
+  speed: .0025 + Math.random() * .003,
+  alert: Math.random() < .16
+}));
+
+function resetPacket(p){
+  const nodes = layers[p.layer];
+  p.i = Math.floor(Math.random() * nodes.length);
+  p.j = Math.floor(Math.random() * nodes.length);
+  if(p.i === p.j) p.j = (p.j + 1) % nodes.length;
+  p.t = 0;
+  p.speed = p.alert ? .0038 : .0028 + Math.random() * .002;
+  p.alert = Math.random() < .16;
+}
+packets.forEach(resetPacket);
+
+function drawGlow(x,y,r,alpha){
+  const g = ctx.createRadialGradient(x,y,0,x,y,r*7);
+  g.addColorStop(0, `rgba(210,230,245,${alpha})`);
+  g.addColorStop(.42, `rgba(86,130,170,${alpha*.42})`);
+  g.addColorStop(1, `rgba(10,25,40,0)`);
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.arc(x,y,r*7,0,Math.PI*2);
+  ctx.fill();
+}
+
+function animate(time){
+  ctx.clearRect(0,0,w,h);
+
+  const haze = ctx.createRadialGradient(w*.55,h*.30,10,w*.55,h*.30,Math.max(w,h)*.65);
+  haze.addColorStop(0,"rgba(90,130,170,.12)");
+  haze.addColorStop(1,"rgba(0,0,0,0)");
+  ctx.fillStyle = haze;
+  ctx.fillRect(0,0,w,h);
+
+  layers.forEach((nodes, layerIndex) => {
+    for(const n of nodes){
+      const dxm = n.x - mouse.x;
+      const dym = n.y - mouse.y;
+      const md = Math.sqrt(dxm*dxm + dym*dym);
+      if(md < 130){
+        n.vx += (dxm / Math.max(md,1)) * 0.0008;
+        n.vy += (dym / Math.max(md,1)) * 0.0008;
+      }
+
+      n.vx += Math.sin(time * .00008 + n.phase) * .00008;
+      n.vy += Math.cos(time * .00007 + n.phase) * .00008;
+
+      n.x += n.vx;
+      n.y += n.vy;
+
+      if(n.x < -30) n.x = w + 30;
+      if(n.x > w + 30) n.x = -30;
+      if(n.y < -30) n.y = h + 30;
+      if(n.y > h + 30) n.y = -30;
+    }
+
+    for(let i=0;i<nodes.length;i++){
+      for(let j=i+1;j<nodes.length;j++){
+        const a = nodes[i], b = nodes[j];
+        const dx = a.x-b.x, dy = a.y-b.y;
+        const d = Math.sqrt(dx*dx + dy*dy);
+
+        if(d < a.dist){
+          const alpha = (1 - d / a.dist) * (layerIndex === 0 ? .18 : layerIndex === 1 ? .09 : .045);
+          ctx.strokeStyle = `rgba(205,225,240,${alpha})`;
+          ctx.lineWidth = layerIndex === 0 ? .72 : .5;
+          ctx.beginPath();
+          ctx.moveTo(a.x,a.y);
+          ctx.lineTo(b.x,b.y);
+          ctx.stroke();
+        }
+      }
+    }
+
+    for(const n of nodes){
+      if(layerIndex === 0) drawGlow(n.x,n.y,n.r,n.alpha*.10);
+      ctx.fillStyle = `rgba(230,240,248,${n.alpha})`;
+      ctx.beginPath();
+      ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+      ctx.fill();
+    }
+  });
+
+  for(const p of packets){
+    const nodes = layers[p.layer];
+    const a = nodes[p.i % nodes.length];
+    const b = nodes[p.j % nodes.length];
+    const x = a.x + (b.x-a.x) * p.t;
+    const y = a.y + (b.y-a.y) * p.t;
+    const color = p.alert ? "188,137,137" : "232,242,250";
+
+    ctx.fillStyle = `rgba(${color},${p.alert ? .78 : .65})`;
+    ctx.beginPath();
+    ctx.arc(x,y,p.alert ? 2.6 : 2.1,0,Math.PI*2);
+    ctx.fill();
+
+    p.t += p.speed;
+    if(p.t >= 1) resetPacket(p);
+  }
+
+  requestAnimationFrame(animate);
+}
+requestAnimationFrame(animate);
+</script>
 </body>
 </html>
